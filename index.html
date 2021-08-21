@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Require the peer dependencies of pose-detection. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+
+    <!-- You must explicitly require a TF.js backend if you're not using the TF.js union bundle. -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
+    <script>
+      const model = poseDetection.SupportedModels.BlazePose
+      const detectorConfig = {
+        runtime: 'tfjs',
+        enableSmoothing: false,
+        modelType: 'full',
+      }
+
+      async function runCode() {
+        detector = await poseDetection.createDetector(model, detectorConfig)
+        const poseImage = document.getElementById('poseImage')
+        const img = tf.browser.fromPixels(poseImage)
+        const estimationConfig = { flipHorizontal: false }
+        const timestamp = performance.now()
+        const poses = await detector.estimatePoses(
+          img,
+          estimationConfig,
+          timestamp
+        )
+
+        console.log(poses)
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Researching BlazePose</h1>
+    <div class="poseGroup">
+      <img id="poseImage" src="./dance.jpg" alt="Dance" width="500" />
+      <textarea id="firstTA"></textarea>
+    </div>
+
+    <div id="controls">
+      <button onclick="runCode()">Run some code</button>
+    </div>
+  </body>
+</html>
