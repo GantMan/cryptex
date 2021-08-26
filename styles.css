@@ -11,10 +11,20 @@ body {
 }
 
 .poseGroup > textarea {
-  font-size: large;
+  font-size: x-small;
   flex: 1;
   padding: 20px;
 }
+
+#sizer {
+  width: 25%;
+  text-align: center;
+  margin: auto;
+}
+
+/* #poseImage2 {
+  transform: scaleX(-1);
+} */
 
 #controls {
   flex-direction: column;

@@ -14,35 +14,98 @@
       const model = poseDetection.SupportedModels.BlazePose
       const detectorConfig = {
         runtime: 'tfjs',
-        enableSmoothing: false,
+        enableSmoothing: false, // true in video
         modelType: 'full',
       }
 
+      function keypointsToNormalizedKeypoints(keypoints, imageSize) {
+        return keypoints.map((keypoint) => {
+          const normalizedKeypoint = {
+            ...keypoint,
+            x: keypoint.x / imageSize.width,
+            y: keypoint.y / imageSize.height,
+          }
+
+          if (normalizedKeypoint.z != null) {
+            // Scale z the same way as x (using image width).
+            normalizedKeypoint.z = normalizedKeypoint.z / imageSize.width
+          }
+
+          return normalizedKeypoint
+        })
+      }
+
       async function runCode() {
-        detector = await poseDetection.createDetector(model, detectorConfig)
+        const detector = await poseDetection.createDetector(
+          model,
+          detectorConfig
+        )
         const poseImage = document.getElementById('poseImage')
+        const poseImage2 = document.getElementById('poseImage2')
+        const firstTA = document.getElementById('firstTA')
+        const secondTA = document.getElementById('secondTA')
+
         const img = tf.browser.fromPixels(poseImage)
-        const estimationConfig = { flipHorizontal: false }
+        const img2 = tf.browser.fromPixels(poseImage2)
+        const estimationConfig = { flipHorizontal: false } // true in video
         const timestamp = performance.now()
-        const poses = await detector.estimatePoses(
+        const poses1 = await detector.estimatePoses(
           img,
           estimationConfig,
           timestamp
         )
+        const poses2 = await detector.estimatePoses(
+          img2,
+          estimationConfig,
+          timestamp
+        )
 
-        console.log(poses)
+        const normalized1 =
+          //poseDetection.calculators.keypointsToNormalizedKeypoints(
+          keypointsToNormalizedKeypoints(poses1[0].keypoints, {
+            height: img.shape[0],
+            width: img.shape[1],
+          })
+
+        const normalized2 =
+          //poseDetection.calculators.keypointsToNormalizedKeypoints(
+          keypointsToNormalizedKeypoints(poses2[0].keypoints, {
+            height: img2.shape[0],
+            width: img2.shape[1],
+          })
+
+        firstTA.innerHTML = normalized1
+          .map((pose) => JSON.stringify(pose, null, 2))
+          .join('\n')
+        secondTA.innerHTML = normalized2
+          .map((pose) => JSON.stringify(pose, null, 2))
+          .join('\n')
       }
     </script>
   </head>
   <body>
     <h1>Researching BlazePose</h1>
     <div class="poseGroup">
-      <img id="poseImage" src="./dance.jpg" alt="Dance" width="500" />
-      <textarea id="firstTA"></textarea>
+      <img
+        id="poseImage"
+        src="./exercise4.jpg"
+        alt="first pose image"
+        style="max-width: 25%; object-fit: scale-down"
+      />
+      <textarea id="firstTA" spellcheck="false"></textarea>
+      <div id="sizer">
+        <img
+          id="poseImage2"
+          src="./exercise4.jpg"
+          alt="second pose image"
+          style="max-width: 50%"
+        />
+      </div>
+      <textarea id="secondTA" spellcheck="false"></textarea>
     </div>
 
     <div id="controls">
-      <button onclick="runCode()">Run some code</button>
+      <button onclick="runCode()">Process Images</button>
     </div>
   </body>
 </html>
